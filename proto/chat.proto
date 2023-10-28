@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/marcusaandahl/disys-hw3/proto";
+
+package proto;
+
+service Chat
+{
+  rpc SendClientTransaction(ClientTransaction) returns (google.protobuf.Empty) {}
+  rpc SendMessage(Message) returns (google.protobuf.Empty) {}
+  rpc GetBroadcast(google.protobuf.Empty) returns (stream Message) {}
+}
+
+message ClientTransaction {
+  string clientName = 1;
+  bool join = 2;
+  int32 timestamp = 3;
+}
+
+message Message {
+  string clientName = 1;
+  string message = 2;
+  bool join = 3;
+  bool leave = 4;
+  int32 timestamp = 5;
+}
