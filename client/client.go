@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"github.com/inancgumus/screen"
 	gRPC "github.com/marcusaandahl/disys-hw3/proto"
 	"google.golang.org/grpc"
@@ -153,15 +152,15 @@ func FollowBroadcast(userName string, stream gRPC.Chat_GetBroadcastClient) {
 			screen.MoveTopLeft()
 			for _, message := range messages {
 				if message.GetJoin() {
-					fmt.Printf("Participant %v joined Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
+					log.Printf("Participant %v joined Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
 				} else if message.GetLeave() {
-					fmt.Printf("Participant %v left Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
+					log.Printf("Participant %v left Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
 				} else {
-					fmt.Printf("%v (Lamport time %v): %v\n", message.GetClientName(), message.GetTimestamp(), message.GetMessage())
+					log.Printf("%v (Lamport time %v): %v\n", message.GetClientName(), message.GetTimestamp(), message.GetMessage())
 				}
 
 			}
-			fmt.Printf("%v> ", userName)
+			log.Printf("%v> ", userName)
 		}
 	}()
 
