@@ -69,7 +69,7 @@ func (s *Server) SendClientTransaction(_ context.Context, client *gRPC.ClientTra
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	localTime = findMax(localTime, client.GetTimestamp()) + 1
+	localTime = findMax(localTime, client.GetSendertime()) + 1
 
 	s.messages = append(s.messages, SavedMessage{
 		clientName: client.GetClientName(),
@@ -86,7 +86,7 @@ func (s *Server) SendMessage(_ context.Context, msg *gRPC.Message) (*emptypb.Emp
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	localTime = findMax(localTime, msg.GetTimestamp()) + 1
+	localTime = findMax(localTime, msg.GetSendertime()) + 1
 
 	s.messages = append(s.messages, SavedMessage{
 		clientName: msg.GetClientName(),
@@ -110,6 +110,7 @@ func (s *Server) GetBroadcast(_ *emptypb.Empty, msgStream gRPC.Chat_GetBroadcast
 			Join:       message.join,
 			Leave:      message.leave,
 			Timestamp:  message.timestamp,
+			Sendertime: localTime,
 		})
 		// the stream is closed so we can exit the loop
 		if err == io.EOF {
@@ -138,7 +139,9 @@ func (s *Server) GetBroadcast(_ *emptypb.Empty, msgStream gRPC.Chat_GetBroadcast
 				Join:       messageToBroadcast.join,
 				Leave:      messageToBroadcast.leave,
 				Timestamp:  messageToBroadcast.timestamp,
+				Sendertime: localTime,
 			})
+			log.Println("Localtime: ", localTime)
 			// the stream is closed so we can exit the loop
 			if err == io.EOF {
 				break

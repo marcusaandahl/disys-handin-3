@@ -44,7 +44,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	FollowBroadcast(sysUser.Name, stream)
+	FollowBroadcast("Villads", stream)
 }
 
 func ConnectToServer() {
@@ -81,6 +81,7 @@ func SendJoin(userName string) {
 		ClientName: userName,
 		Join:       true,
 		Timestamp:  localTime,
+		Sendertime: localTime,
 	}
 
 	_, err := server.SendClientTransaction(context.Background(), client)
@@ -120,6 +121,7 @@ func SendMessage(userName string, messageInput string) {
 		Join:       false,
 		Leave:      false,
 		Timestamp:  localTime,
+		Sendertime: localTime,
 	}
 
 	_, err := server.SendMessage(context.Background(), message)
@@ -144,7 +146,7 @@ func FollowBroadcast(userName string, stream gRPC.Chat_GetBroadcastClient) {
 				log.Fatalf("Failed to receive a note : %v", err)
 			}
 
-			localTime = findMax(localTime, msg.GetTimestamp()) + 1
+			localTime = findMax(localTime, msg.GetSendertime()) + 1
 
 			messages = append(messages, msg)
 
@@ -152,11 +154,14 @@ func FollowBroadcast(userName string, stream gRPC.Chat_GetBroadcastClient) {
 			screen.MoveTopLeft()
 			for _, message := range messages {
 				if message.GetJoin() {
-					log.Printf("Participant %v joined Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
+					log.Printf(message.GetMessage())
+					//log.Printf("Participant %v joined Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
 				} else if message.GetLeave() {
 					log.Printf("Participant %v left Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
 				} else {
 					log.Printf("%v (Lamport time %v): %v\n", message.GetClientName(), message.GetTimestamp(), message.GetMessage())
+					log.Println()
+					log.Printf("Local time: %v", localTime)
 				}
 
 			}
