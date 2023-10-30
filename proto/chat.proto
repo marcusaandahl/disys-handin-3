@@ -16,15 +16,12 @@ service Chat
 message ClientTransaction {
   string clientName = 1;
   bool join = 2;
-  int32 timestamp = 3;
-  int32 sendertime = 4;
+  int32 senderTime = 3;
 }
 
 message Message {
   string clientName = 1;
   string message = 2;
-  bool join = 3;
-  bool leave = 4;
-  int32 timestamp = 5;
-  int32 sendertime = 6;
+  int32 timestamp = 4;
+  int32 senderTime = 5;
 }

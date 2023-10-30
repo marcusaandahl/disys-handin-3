@@ -44,7 +44,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	FollowBroadcast("Villads", stream)
+	FollowBroadcast(sysUser.Name, stream)
 }
 
 func ConnectToServer() {
@@ -80,8 +80,7 @@ func SendJoin(userName string) {
 	client := &gRPC.ClientTransaction{
 		ClientName: userName,
 		Join:       true,
-		Timestamp:  localTime,
-		Sendertime: localTime,
+		SenderTime: localTime,
 	}
 
 	_, err := server.SendClientTransaction(context.Background(), client)
@@ -96,7 +95,7 @@ func SendLeave(userName string) {
 	client := &gRPC.ClientTransaction{
 		ClientName: userName,
 		Join:       false,
-		Timestamp:  localTime,
+		SenderTime: localTime,
 	}
 
 	_, err := server.SendClientTransaction(context.Background(), client)
@@ -118,10 +117,8 @@ func SendMessage(userName string, messageInput string) {
 	message := &gRPC.Message{
 		ClientName: userName,
 		Message:    messageInput,
-		Join:       false,
-		Leave:      false,
 		Timestamp:  localTime,
-		Sendertime: localTime,
+		SenderTime: localTime,
 	}
 
 	_, err := server.SendMessage(context.Background(), message)
@@ -146,25 +143,16 @@ func FollowBroadcast(userName string, stream gRPC.Chat_GetBroadcastClient) {
 				log.Fatalf("Failed to receive a note : %v", err)
 			}
 
-			localTime = findMax(localTime, msg.GetSendertime()) + 1
+			localTime = findMax(localTime, msg.GetSenderTime()) + 1
 
 			messages = append(messages, msg)
 
 			screen.Clear()
 			screen.MoveTopLeft()
 			for _, message := range messages {
-				if message.GetJoin() {
-					log.Printf(message.GetMessage())
-					//log.Printf("Participant %v joined Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
-				} else if message.GetLeave() {
-					log.Printf("Participant %v left Chitty-Chat at Lamport time %v\n", message.GetClientName(), message.GetTimestamp())
-				} else {
-					log.Printf("%v (Lamport time %v): %v\n", message.GetClientName(), message.GetTimestamp(), message.GetMessage())
-					log.Println()
-					log.Printf("Local time: %v", localTime)
-				}
-
+				log.Println(message.GetMessage())
 			}
+
 			log.Printf("%v> ", userName)
 		}
 	}()

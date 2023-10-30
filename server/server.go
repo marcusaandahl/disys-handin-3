@@ -69,13 +69,19 @@ func (s *Server) SendClientTransaction(_ context.Context, client *gRPC.ClientTra
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	localTime = findMax(localTime, client.GetSendertime()) + 1
+	localTime = findMax(localTime, client.GetSenderTime()) + 1
+
+	var action string
+
+	if client.GetJoin() {
+		action = "joined"
+	} else {
+		action = "left"
+	}
 
 	s.messages = append(s.messages, SavedMessage{
 		clientName: client.GetClientName(),
-		join:       client.Join == true,
-		leave:      client.Join == false,
-		message:    fmt.Sprintf("Participant %v joined Chitty-Chat at Lamport time %v", client.GetClientName(), localTime),
+		message:    fmt.Sprintf("Participant %v %v Chitty-Chat at Lamport time %v", client.GetClientName(), action, localTime),
 		timestamp:  localTime,
 	})
 
@@ -86,13 +92,11 @@ func (s *Server) SendMessage(_ context.Context, msg *gRPC.Message) (*emptypb.Emp
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	localTime = findMax(localTime, msg.GetSendertime()) + 1
+	localTime = findMax(localTime, msg.GetSenderTime()) + 1
 
 	s.messages = append(s.messages, SavedMessage{
 		clientName: msg.GetClientName(),
-		message:    msg.GetMessage(),
-		join:       msg.GetJoin(),
-		leave:      msg.GetLeave(),
+		message:    fmt.Sprintf("%v (Lamport %v): %v", msg.GetClientName(), localTime, msg.GetMessage()),
 		timestamp:  localTime,
 	})
 
@@ -107,10 +111,7 @@ func (s *Server) GetBroadcast(_ *emptypb.Empty, msgStream gRPC.Chat_GetBroadcast
 		err := msgStream.SendMsg(&gRPC.Message{
 			ClientName: message.clientName,
 			Message:    message.message,
-			Join:       message.join,
-			Leave:      message.leave,
-			Timestamp:  message.timestamp,
-			Sendertime: localTime,
+			SenderTime: localTime,
 		})
 		// the stream is closed so we can exit the loop
 		if err == io.EOF {
@@ -136,12 +137,9 @@ func (s *Server) GetBroadcast(_ *emptypb.Empty, msgStream gRPC.Chat_GetBroadcast
 			err := msgStream.SendMsg(&gRPC.Message{
 				ClientName: messageToBroadcast.clientName,
 				Message:    messageToBroadcast.message,
-				Join:       messageToBroadcast.join,
-				Leave:      messageToBroadcast.leave,
-				Timestamp:  messageToBroadcast.timestamp,
-				Sendertime: localTime,
+				SenderTime: localTime,
 			})
-			log.Println("Localtime: ", localTime)
+
 			// the stream is closed so we can exit the loop
 			if err == io.EOF {
 				break
